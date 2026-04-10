@@ -145,7 +145,7 @@ public class ProyectoBatalla1 {
             actual = actual.getNext();
         }
 
-        // 🏆 GANADOR
+        //  GANADOR
         Jugador ganador = (Jugador) jugadores.getPrimero().getData();
         Input.nextLine("🏆 GANADOR: " + ganador.getNombre());
     }
@@ -231,7 +231,7 @@ public class ProyectoBatalla1 {
 
     Nodo anterior = jugadores.getPrimero();
 
-    // 🔍 buscar el nodo anterior al actual
+    //  buscar el nodo anterior al actual
     while (anterior.getNext() != actual) {
         anterior = anterior.getNext();
     }
@@ -255,3 +255,4 @@ public class ProyectoBatalla1 {
         return count;
     }
 }
+
