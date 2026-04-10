@@ -10,6 +10,7 @@ public class ProyectoBatalla1 {
     public static void main(String[] args) {
 
         boolean activo = true;
+        
 
         while (activo) {
 
