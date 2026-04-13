@@ -6,11 +6,11 @@ import com.murcia.utils.Nodo;
 public class ProyectoBatalla1 {
 
     static ListaCircular jugadores = new ListaCircular();
+    static String ultimoGanador = "Aun no definido";
 
     public static void main(String[] args) {
 
         boolean activo = true;
-        
 
         while (activo) {
 
@@ -18,6 +18,7 @@ public class ProyectoBatalla1 {
                 "\n=== MENU PRINCIPAL ===\n" +
                 "1. Iniciar partida\n" +
                 "0. Mostrar ultimo ganador\n" +
+                "2. Salir\n" +
                 "Seleccione: "
             );
 
@@ -36,7 +37,11 @@ public class ProyectoBatalla1 {
                     break;
 
                 case 0:
-                    Input.nextLine("Ultimo ganador: (aun no definido)");
+                    Input.nextLine("Ultimo ganador: " + ultimoGanador);
+                    break;
+
+                case 2:
+                    activo = false;
                     break;
 
                 default:
@@ -61,11 +66,8 @@ public class ProyectoBatalla1 {
         jugadores = new ListaCircular();
 
         for (int i = 0; i < cantidad; i++) {
-
             String nombre = Input.nextLine("Jugador #" + (i + 1));
-            Jugador j = new Jugador(nombre);
-
-            jugadores.insertar(j);
+            jugadores.insertar(new Jugador(nombre)); // ✅ CORRECTO
         }
 
         mostrarJugadores();
@@ -102,15 +104,7 @@ public class ProyectoBatalla1 {
             "Seleccione: "
         );
 
-        int opcion;
-
-        try {
-            opcion = Integer.parseInt(opcionStr);
-        } catch (Exception e) {
-            opcion = -1;
-        }
-
-        if (opcion == 1) {
+        if (opcionStr.equals("1")) {
             ejecutarJuego();
         }
     }
@@ -119,6 +113,9 @@ public class ProyectoBatalla1 {
     public static void ejecutarJuego() {
 
         Nodo actual = jugadores.getPrimero();
+
+        int totalJugadores = jugadoresActivos();
+        int contadorTurnos = 0;
 
         while (jugadoresActivos() > 1) {
 
@@ -130,7 +127,7 @@ public class ProyectoBatalla1 {
             jugador.sumarPuntos(dado);
 
             Input.nextLine("Sacaste: " + dado);
-            Input.nextLine("Puntos acumulados: " + jugador.getPuntos());
+            Input.nextLine("Puntos: " + jugador.getPuntos());
 
             String opcion = Input.nextLine("¿Desea ejecutar accion? (si/no)");
 
@@ -138,108 +135,163 @@ public class ProyectoBatalla1 {
                 ejecutarAccion(jugador, actual);
             }
 
+            // 🔥 VALIDAR SI MURIÓ
             if (jugador.getVida() <= 0) {
-                Input.nextLine("Jugador " + jugador.getNombre() + " eliminado");
+                Input.nextLine("Jugador eliminado: " + jugador.getNombre());
+                Nodo siguiente = actual.getNext(); // guardar siguiente
                 eliminarJugador(actual);
+                actual = siguiente;
+                continue;
             }
 
             actual = actual.getNext();
+            contadorTurnos++;
+
+            // 🔥 EVENTO POR RONDA
+            if (contadorTurnos >= totalJugadores) {
+                ejecutarEventoAleatorio();
+                contadorTurnos = 0;
+                totalJugadores = jugadoresActivos();
+            }
         }
 
-        //  GANADOR
         Jugador ganador = (Jugador) jugadores.getPrimero().getData();
-        Input.nextLine("🏆 GANADOR: " + ganador.getNombre());
+        ultimoGanador = ganador.getNombre();
+        Input.nextLine("🏆 GANADOR: " + ultimoGanador);
     }
 
     // ===============================
-   public static void ejecutarAccion(Jugador jugador, Nodo actual) {
+    public static void ejecutarAccion(Jugador jugador, Nodo actual) {
 
-    int puntos = jugador.getPuntos();
+        int puntos = jugador.getPuntos();
 
-    String menu = "\nAcciones disponibles:\n";
+        String menu = "\nAcciones:\n";
 
-    if (puntos >= 3) menu += "1. Ataque rápido (3 puntos)\n";
-    if (puntos >= 5) menu += "2. Curación (5 puntos)\n";
-    if (puntos >= 7) menu += "3. Ataque fuerte (7 puntos)\n";
-    if (puntos >= 10) menu += "4. Ataque especial (10 puntos)\n";
+        if (puntos >= 3) menu += "1. Ataque rápido\n";
+        if (puntos >= 5) menu += "2. Curación\n";
+        if (puntos >= 7) menu += "3. Ataque fuerte\n";
+        if (puntos >= 10) menu += "4. Ataque especial\n";
 
-    menu += "0. No hacer nada";
+        menu += "0. Nada\n";
 
-    String opcionStr = Input.nextLine(menu + "\nSeleccione: ");
+        int opcion;
 
-    int opcion;
-    try {
-        opcion = Integer.parseInt(opcionStr);
-    } catch (Exception e) {
-        opcion = -1;
-    }
+        try {
+            opcion = Integer.parseInt(Input.nextLine(menu));
+        } catch (Exception e) {
+            return;
+        }
 
-    Nodo objetivoNodo = actual.getNext();
-    Jugador objetivo = (Jugador) objetivoNodo.getData();
+        Nodo objetivoNodo = actual.getNext();
+        Jugador objetivo = (Jugador) objetivoNodo.getData();
 
-    switch (opcion) {
-
-        case 1:
-            if (puntos >= 3) {
+        switch (opcion) {
+            case 1:
                 objetivo.restarVida(2);
                 jugador.sumarPuntos(-3);
-                Input.nextLine("Ataque rápido a " + objetivo.getNombre());
-            } else {
-                Input.nextLine("No tienes suficientes puntos");
-            }
+                break;
+
+            case 2:
+                jugador.sumarVida(2);
+                jugador.sumarPuntos(-5);
+                break;
+
+            case 3:
+                objetivo.restarVida(4);
+                jugador.sumarPuntos(-7);
+                break;
+
+            case 4:
+                jugadores.eliminarSiguiente(actual);
+                jugador.sumarPuntos(-10);
+                break;
+        }
+    }
+
+    // ===============================
+   public static void ejecutarEventoAleatorio() {
+
+    int evento = (int)(Math.random() * 3) + 1; // ✅ CORREGIDO
+
+    Input.nextLine("\n🎲 EVENTO ALEATORIO ACTIVADO");
+
+    switch (evento) {
+
+        case 1:
+            Input.nextLine("🔄 Orden de jugadores invertido");
+            invertirOrden();
             break;
 
         case 2:
-            if (puntos >= 5) {
-                jugador.sumarVida(2);
-                jugador.sumarPuntos(-5);
-                Input.nextLine("Te curaste +2 de vida");
-            } else {
-                Input.nextLine("No tienes suficientes puntos");
-            }
+            Input.nextLine("⚔️ Duelo de los más fuertes");
+            dueloMejores();
             break;
 
         case 3:
-            if (puntos >= 7) {
-                objetivo.restarVida(4);
-                jugador.sumarPuntos(-7);
-                Input.nextLine("Ataque fuerte a " + objetivo.getNombre());
-            } else {
-                Input.nextLine("No tienes suficientes puntos");
-            }
+            Nodo primero = jugadores.getPrimero();
+            Jugador inmune = (Jugador) primero.getData();
+            Input.nextLine("🛡 " + inmune.getNombre() + " es inmune por una ronda");
             break;
-
-        case 4:
-            if (puntos >= 10) {
-                jugadores.eliminarSiguiente(actual);
-                jugador.sumarPuntos(-10);
-                Input.nextLine("Ataque especial ejecutado");
-            } else {
-                Input.nextLine("No tienes suficientes puntos");
-            }
-            break;
-
-        default:
-            Input.nextLine("No hiciste ninguna acción");
     }
 }
-   
-   
-//   ------------
-  public static void eliminarJugador(Nodo actual) {
 
-    if (jugadores.estaVacia()) return;
+    // ===============================
+    public static void dueloMejores() {
 
-    Nodo anterior = jugadores.getPrimero();
+        Nodo actual = jugadores.getPrimero();
+        Jugador max1 = null, max2 = null;
 
-    //  buscar el nodo anterior al actual
-    while (anterior.getNext() != actual) {
-        anterior = anterior.getNext();
+        do {
+            Jugador j = (Jugador) actual.getData();
+
+            if (max1 == null || j.getVida() > max1.getVida()) {
+                max2 = max1;
+                max1 = j;
+            } else if (max2 == null || j.getVida() > max2.getVida()) {
+                max2 = j;
+            }
+
+            actual = actual.getNext();
+        } while (actual != jugadores.getPrimero());
+
+        if (max1 != null && max2 != null) {
+            max1.restarVida(2);
+            max2.restarVida(2);
+            Input.nextLine(max1.getNombre() + " vs " + max2.getNombre());
+        }
     }
 
-    // 🗑 eliminar el nodo actual
-    jugadores.eliminarSiguiente(anterior);
-} 
+    // ===============================
+    public static void invertirOrden() {
+
+        if (jugadores.estaVacia()) return;
+
+        Nodo prev = null;
+        Nodo actual = jugadores.getPrimero();
+        Nodo inicio = actual;
+
+        do {
+            Nodo next = actual.getNext();
+            actual.setNext(prev);
+            prev = actual;
+            actual = next;
+        } while (actual != inicio);
+
+        inicio.setNext(prev);
+    }
+
+    // ===============================
+    public static void eliminarJugador(Nodo actual) {
+
+        Nodo anterior = jugadores.getPrimero();
+
+        while (anterior.getNext() != actual) {
+            anterior = anterior.getNext();
+        }
+
+        jugadores.eliminarSiguiente(anterior);
+    }
+
     // ===============================
     public static int jugadoresActivos() {
 
@@ -256,4 +308,3 @@ public class ProyectoBatalla1 {
         return count;
     }
 }
-
