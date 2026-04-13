@@ -1,16 +1,20 @@
 package com.proyecto.proyectobatalla1;
 
 import com.murcia.utils.Nodo;
+import com.murcia.utils.ListaEnlazada; // 🔥 IMPORTANTE
 import java.lang.reflect.Method;
 
-public class ListaCircular {
+// 🔥 HERENCIA AQUÍ
+public class ListaCircular extends ListaEnlazada<Object> {
 
     private Nodo ultimo;
 
     public ListaCircular() {
+        super(); // 🔥 opcional pero correcto
         ultimo = null;
     }
 
+    // 🔥 TU MÉTODO ORIGINAL (NO SE TOCA)
     public void insertar(Object dato) {
 
         Nodo nuevo = new Nodo();
