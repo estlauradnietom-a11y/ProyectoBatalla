@@ -1,12 +1,14 @@
 package com.proyecto.proyectobatalla1;
 
 import com.murcia.utils.Nodo;
+import com.murcia.utils.ListaEnlazada;
 
-public class ListaCircular {
+public class ListaCircular extends ListaEnlazada<Object> {
 
     private Nodo ultimo;
 
     public ListaCircular() {
+        super(); // opcional pero correcto
         ultimo = null;
     }
 
@@ -15,40 +17,34 @@ public class ListaCircular {
     public void insertar(Object dato) {
 
         Nodo nuevo = new Nodo();
-        nuevo.setData(dato); // ✅ SIMPLE (sin reflection)
+        nuevo.setData(dato); 
 
         if (ultimo == null) {
             ultimo = nuevo;
             ultimo.setNext(nuevo);
         } else {
-            nuevo.setNext(ultimo.getNext()); // apunta al primero
+            nuevo.setNext(ultimo.getNext()); 
             ultimo.setNext(nuevo);
-            ultimo = nuevo; // se convierte en el último
+            ultimo = nuevo; 
         }
     }
 
     // ===============================
-    // OBTENER PRIMERO
     public Nodo getPrimero() {
         if (ultimo == null) return null;
         return ultimo.getNext();
     }
 
-    // ===============================
-    // VALIDAR SI ESTÁ VACÍA
     public boolean estaVacia() {
         return ultimo == null;
     }
 
-    // ===============================
-    // ELIMINAR SIGUIENTE (CLAVE PARA EL JUEGO)
     public void eliminarSiguiente(Nodo actual) {
 
         if (actual == null || actual.getNext() == null) return;
 
         Nodo eliminado = actual.getNext();
 
-        // 🔥 CASO: solo un nodo
         if (eliminado == actual) {
             ultimo = null;
             return;
@@ -56,14 +52,11 @@ public class ListaCircular {
 
         actual.setNext(eliminado.getNext());
 
-        // 🔥 SI ELIMINA EL ÚLTIMO
         if (eliminado == ultimo) {
             ultimo = actual;
         }
     }
 
-    // ===============================
-    // CONTAR ELEMENTOS
     public int size() {
 
         if (estaVacia()) return 0;
@@ -79,8 +72,6 @@ public class ListaCircular {
         return count;
     }
 
-    // ===============================
-    // MOSTRAR LISTA (DEBUG)
     public void mostrar() {
 
         if (estaVacia()) {
