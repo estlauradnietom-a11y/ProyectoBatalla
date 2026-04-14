@@ -135,7 +135,7 @@ public class ProyectoBatalla1 {
                 ejecutarAccion(jugador, actual);
             }
 
-            // 🔥 VALIDAR SI MURIÓ
+            
             if (jugador.getVida() <= 0) {
                 Input.nextLine("Jugador eliminado: " + jugador.getNombre());
                 Nodo siguiente = actual.getNext(); // guardar siguiente
@@ -147,7 +147,7 @@ public class ProyectoBatalla1 {
             actual = actual.getNext();
             contadorTurnos++;
 
-            // 🔥 EVENTO POR RONDA
+            // EVENTO POR RONDA
             if (contadorTurnos >= totalJugadores) {
                 ejecutarEventoAleatorio();
                 contadorTurnos = 0;
